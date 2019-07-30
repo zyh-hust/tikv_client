@@ -1,0 +1,9 @@
+[package]
+name = "tikv_client"
+version = "0.1.0"
+authors = ["zyh-hust <zhouyuanhui@pingcap.com>"]
+edition = "2018"
+
+[dependencies]
+kvproto = { git = "https://github.com/pingcap/kvproto.git", branch = "release-3.0" }
+grpcio = "0.4"
