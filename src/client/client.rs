@@ -73,4 +73,8 @@ impl Client {
         println!("put_raw resp :{:?}", resp);
         true
     }
+
+    pub fn scan_regions(&mut self, start_key: Vec<u8>) -> bool {
+        self.pd.scan_regions(start_key)
+    }
 }

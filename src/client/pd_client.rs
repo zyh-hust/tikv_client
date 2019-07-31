@@ -1,7 +1,9 @@
 use super::comment::RegionLeader;
 use super::error::{Error, Result};
 use grpcio::{ChannelBuilder, Environment};
-use kvproto::pdpb::{GetMembersRequest, GetMembersResponse, GetRegionRequest, RequestHeader};
+use kvproto::pdpb::{
+    GetMembersRequest, GetMembersResponse, GetRegionRequest, RequestHeader, ScanRegionRequest,
+};
 use kvproto::pdpb_grpc::PdClient;
 use std::sync::Arc;
 
@@ -72,5 +74,17 @@ impl PDClient {
             None
         };
         RegionLeader::new(region, leader)
+    }
+
+    pub fn scan_regions(&self, start_key: Vec<u8>) -> bool {
+        let mut req = ScanRegionsRequest::new();
+        let mut header = RequestHeader::new();
+        header.set_cluster_id(self.cluster_id);
+        req.set_header(header);
+        req.set_start_key(start_key);
+        req.set_limit(5);
+        let mut res = self.pd.scan_regions(&req).unwrap();
+        println!("{:?}", res);
+        true
     }
 }

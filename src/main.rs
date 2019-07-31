@@ -9,6 +9,11 @@ fn main() {
     let env = Arc::new(EnvBuilder::new().build());
     let client = Client::new(env);
 
+    let start_key = "a".to_string().into_bytes();
+    let resp = client.scan_regions(start_key);
+    if resp {
+        return;
+    }
     let mut workers: Vec<JoinHandle<()>> = Vec::new();
     for i in 0..4 {
         let mut client = client.clone();
