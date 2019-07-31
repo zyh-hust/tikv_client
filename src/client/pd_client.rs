@@ -4,12 +4,9 @@ use grpcio::{ChannelBuilder, Environment};
 use kvproto::pdpb::{GetMembersRequest, GetMembersResponse, GetRegionRequest, RequestHeader};
 use kvproto::pdpb_grpc::PdClient;
 use std::sync::Arc;
-use std::time::Duration;
 
 fn connect_pd_client(env: Arc<Environment>, addr: &str) -> Result<(PdClient, GetMembersResponse)> {
-    let cb = ChannelBuilder::new(env)
-        .keepalive_time(Duration::from_secs(10))
-        .keepalive_timeout(Duration::from_secs(3));
+    let cb = ChannelBuilder::new(env);
     let channel = cb.connect(addr);
 
     let pd_client = PdClient::new(channel);
@@ -18,6 +15,7 @@ fn connect_pd_client(env: Arc<Environment>, addr: &str) -> Result<(PdClient, Get
     Ok((pd_client, resp))
 }
 
+#[derive(Clone)]
 pub struct PDClient {
     cluster_id: u64,
     pd: PdClient,
@@ -33,14 +31,13 @@ impl PDClient {
     }
 
     pub fn validate_endpoints(env: Arc<Environment>, addr: &str) -> Result<(PdClient, u64)> {
-        let mut cluster_id = None;
-        for i in 0..100 {
+        for _i in 0..100 {
             let (pd_client, resp) = match connect_pd_client(Arc::clone(&env), addr.clone()) {
                 // connect this endpoint
                 Ok(resp) => resp,
                 // Ignore failed PD node.
                 Err(e) => {
-                    println!("failed to connect pd_client@[{}]", addr);
+                    println!("failed to connect pd_client@[{}],because of {:?}", addr, e);
                     continue;
                 }
             };
@@ -75,18 +72,5 @@ impl PDClient {
             None
         };
         RegionLeader::new(region, leader)
-    }
-}
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn test_pd_client() {
-        let env = Arc::new(EnvBuilder::new().build());
-        let pd = PDClient::new(env, "172.16.5.31:38830");
-        println!("{:?}", pd);
-
-        let key = "b".to_string().into_bytes();
-        println!("{:?}", pd.get_region(key));
     }
 }

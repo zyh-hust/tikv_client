@@ -25,7 +25,7 @@ impl RegionLeader {
     }
 
     pub fn peer(&self) -> Peer {
-        if let Some(peer) = self.leader {
+        if let Some(peer) = &self.leader {
             return peer.clone();
         }
         panic!("no leader peer");

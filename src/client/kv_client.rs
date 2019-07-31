@@ -8,6 +8,7 @@ use kvproto::kvrpcpb::{
 };
 use kvproto::tikvpb_grpc::TikvClient;
 
+#[derive(Clone)]
 pub struct KvClient {
     client: Arc<TikvClient>,
     address: String,
@@ -26,6 +27,7 @@ impl KvClient {
             address: addr.to_owned(),
         })
     }
+
     pub fn raw_put(&self, ctx: Context, key: Vec<u8>, value: Vec<u8>) -> RawPutResponse {
         let mut req = RawPutRequest::default();
         req.set_context(ctx);

@@ -1,15 +1,17 @@
 mod client;
+use client::Client;
 use grpcio::EnvBuilder;
 use std::sync::Arc;
 use std::thread::{self, JoinHandle};
+use std::time::Duration;
 
 fn main() {
     let env = Arc::new(EnvBuilder::new().build());
-    let client = client::client::Client::new(env);
+    let client = Client::new(env);
 
     let mut workers: Vec<JoinHandle<()>> = Vec::new();
     for i in 0..4 {
-        let client = client.clone();
+        let mut client = client.clone();
         let t = thread::spawn(move || {
             let (head, split) = match i {
                 0 => ("a", "b"),
@@ -19,9 +21,14 @@ fn main() {
                 _ => ("a", "b"),
             };
 
-            let resp = client.split_region(split.to_owned().into_bytes());
-            println!("split {:?} response is {:?}", split, resp);
+            let mut resp = false;
+            while !resp {
+                resp = client.split_region(split.to_owned().into_bytes());
+                println!("split {:?} response is {:?}", split, resp);
+                thread::sleep(Duration::from_secs(10));
+            }
 
+            thread::sleep(Duration::from_secs(100));
             let mut count = 1;
             loop {
                 let key = format!("{:?}-{}", head, count).into_bytes();
