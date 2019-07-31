@@ -1,11 +1,11 @@
 use std::sync::Arc;
-use std::time::Duration};
-use std::result;
+use std::time::Duration;
+use std::error::Result;
 
-use grpcio::{CallOption, Environment};
-use grpcio::ChannelBuilder;
-use kvproto::{errorpb, kvrpcpb, tikvpb::TikvClient};
-use kvproto::kvrpcpb::Context;
+use grpcio::{ChannelBuilder, Environment};
+use kvproto::tikvpb::TikvClient;
+use kvproto::kvrpcpb::{Context, RawPutRequest,RawPutResponse}; 
+use kvproto::pdpb::{SplitRegionRequest,SplitRegionResponse};
 
 pub struct KvClient{
     client: Arc<TikvClient>,
@@ -25,12 +25,18 @@ impl KvClient{
             address: addr.to_owned(),
         })
     }
-    pub fn raw_put(&self, ctx: Context, key: String, value: String) {
-        let mut req = kvrpcpb::RawPutRequest::new();
+    pub fn raw_put(&self, ctx: Context, key: Vec<u8>, value: Vec<u8>) -> RawPutResponse {
+        let mut req = RawPutRequest::default();
         req.set_context(ctx);
-        req.set_key(key.into_bytes());
-        req.set_value(value.into_bytes());
-        // TODO: handle RawPutResponse
-        self.client.raw_put(&req);
+        req.set_key(key);
+        req.set_value(value);
+        self.client.raw_put(&req) 
+    }
+
+    pub fn split_region(&self,ctx: Context,key: Vec<u8>) ->  SplitRegionResponse {
+        let mut req = SplitRegionRequest::default();
+        req.set_context(ctx);
+        req.set_split_key(key.into_bytes());
+        self.client.split_region(&req)
     }
 }
