@@ -1,19 +1,12 @@
-use grpcio::{ChannelBuilder, EnvBuilder};
-use kvproto::kvrpcpb::{RawPutRequest, SplitRegionRequest};
-use kvproto::tikvpb_grpc::TikvClient;
+mod client;
+use grpcio::EnvBuilder;
 use std::sync::Arc;
 use std::thread::{self, JoinHandle};
 
-//pub struct kv_client{
-//    client: TikvClient,
-//    caches:
-//
-//}
-
 fn main() {
     let env = Arc::new(EnvBuilder::new().build());
-    let client = Client::new(env);
-    
+    let client = client::client::Client::new(env);
+
     let mut workers: Vec<JoinHandle<()>> = Vec::new();
     for i in 0..4 {
         let client = client.clone();
@@ -33,7 +26,7 @@ fn main() {
             loop {
                 let key = format!("{:?}-{}", head, count).into_bytes();
                 let value = count.to_string().into_bytes();
-                let resp = client.raw_put(key,value);
+                let resp = client.raw_put(key, value);
                 println!("put count: {:?} resp: {:?}", count, resp);
                 count += 1;
                 if count == 100000000 {
