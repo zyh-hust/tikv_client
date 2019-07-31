@@ -1,8 +1,7 @@
 use super::comment::RegionLeader;
 use super::error::{Error, Result};
 use grpcio::{ChannelBuilder, Environment};
-use kvproto::pdpb::ScanRegionsRequest;
-use kvproto::pdpb::{GetMembersRequest, GetMembersResponse, GetRegionRequest, RequestHeader};
+use kvproto::pdpb::{GetMembersRequest, GetMembersResponse, GetRegionRequest, RequestHeader, ScanRegionRequest};
 use kvproto::pdpb_grpc::PdClient;
 use std::sync::Arc;
 
@@ -83,12 +82,7 @@ impl PDClient {
         req.set_start_key(start_key);
         req.set_limit(5);
         let mut res = self.pd.scan_regions(&req).unwrap();
-        println!(
-            "{:?} \n {:?}\n {:?}",
-            res.take_header(),
-            res.take_regions(),
-            res.take_leaders()
-        );
+        println!("{:?}", res);
         true
     }
 }

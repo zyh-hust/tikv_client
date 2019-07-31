@@ -64,17 +64,16 @@ impl Client {
         let region = self.get_region(key.clone());
         let ctx = region.form();
         let resp = self.tikv.raw_put(ctx, key.clone(), value);
-        println!("put_raw resp :{:?}", resp);
         // TODO handle the response
         if resp.has_region_error() {
+            println!("resp has region error :{:?}", resp);
             self.remove(key);
             return false;
         }
-        println!("put_raw resp :{:?}", resp);
         true
     }
 
-    pub fn scan_regions(&mut self, start_key: Vec<u8>) -> bool {
+    pub fn scan_regions(&self, start_key: Vec<u8>) -> bool {
         self.pd.scan_regions(start_key)
     }
 }
