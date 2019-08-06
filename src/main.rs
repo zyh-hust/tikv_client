@@ -3,7 +3,6 @@ use client::Client;
 use grpcio::EnvBuilder;
 use std::sync::Arc;
 use std::thread::{self, JoinHandle};
-use std::time::Duration;
 
 fn main() {
     let env = Arc::new(EnvBuilder::new().build());
@@ -19,25 +18,16 @@ fn main() {
     for i in 0..4 {
         let mut client = client.clone();
         let t = thread::spawn(move || {
-            let (head, split) = match i {
-                0 => ("a", "b"),
-                1 => ("b", "c"),
-                2 => ("c", "d"),
-                3 => ("d", "e"),
-                _ => ("a", "b"),
-            };
-
-            let head = "z";
+            let head = "abczyh";
             let mut count = 1;
             loop {
                 let key = format!("{:?}-{}", head, count).into_bytes();
                 let value = count.to_string().into_bytes();
-                let resp = client.raw_put(key, value);
-                println!("put count: {:?} resp: {:?}", count, resp);
+                let resp = client.raw_put(key.clone(), value);
+                //               println!("put key : {:?} value : count: {:?} {}", key, count, resp);
                 count += 1;
-                if count == 1000000 {
+                if count == 10000000 {
                     count = 0;
-                    thread::sleep(Duration::from_secs(10));
                 }
             }
         });

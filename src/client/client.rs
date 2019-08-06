@@ -2,6 +2,7 @@ use grpcio::Environment;
 use std::collections::HashMap;
 
 use super::comment::RegionLeader;
+use super::error::Result;
 use super::kv_client::KvClient;
 use super::pd_client::PDClient;
 use std::sync::Arc;
@@ -37,23 +38,38 @@ impl Client {
         self.region_cache.remove(&key);
     }
 
-    pub fn get_region(&mut self, key: Vec<u8>) -> RegionLeader {
+    pub fn get_region(&mut self, key: Vec<u8>) -> Result<RegionLeader> {
         if let Some(region) = self.region_cache.get(&key.clone()) {
-            return region.clone();
+            return Ok(region.clone());
         }
-        let region_leader = self.pd.get_regionleader(key.clone());
+        let region_leader = match self.pd.get_regionleader(key.clone()) {
+            Ok(res) => res,
+            Err(err) => return Err(err),
+        };
         self.region_cache.insert(key, region_leader.clone());
-        region_leader
+        Ok(region_leader)
     }
 
     pub fn split_region(&mut self, key: Vec<u8>) -> bool {
-        let region = self.get_region(key.clone());
+        let region = match self.get_region(key.clone()) {
+            Ok(reg) => reg,
+            Err(err) => {
+                println!("{:?}", err);
+                return false;
+            }
+        };
         let ctx = region.form();
-        let resp = self.tikv.split_region(ctx, key.clone());
-        println!("split region resp :{:?}", resp);
+        let resp = match self.tikv.split_region(ctx, key.clone()) {
+            Ok(resp) => resp,
+            Err(err) => {
+                println!("{:?}", err);
+                return false;
+            }
+        };
         // TODO handle the response
         if resp.has_region_error() {
             self.remove(key);
+            println!("split region resp :{:?}", resp);
             return false;
         }
         println!("split region resp :{:?}", resp);
@@ -61,9 +77,21 @@ impl Client {
     }
 
     pub fn raw_put(&mut self, key: Vec<u8>, value: Vec<u8>) -> bool {
-        let region = self.get_region(key.clone());
+        let region = match self.get_region(key.clone()) {
+            Ok(res) => res,
+            Err(err) => {
+                println!("{:?}", err);
+                return false;
+            }
+        };
         let ctx = region.form();
-        let resp = self.tikv.raw_put(ctx, key.clone(), value);
+        let resp = match self.tikv.raw_put(ctx, key.clone(), value) {
+            Ok(resp) => resp,
+            Err(err) => {
+                println!("{:?}", err);
+                return false;
+            }
+        };
         // TODO handle the response
         if resp.has_region_error() {
             println!("resp has region error :{:?}", resp);

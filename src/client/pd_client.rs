@@ -51,7 +51,7 @@ impl PDClient {
         )))
     }
 
-    pub fn get_regionleader(&self, key: Vec<u8>) -> RegionLeader {
+    pub fn get_regionleader(&self, key: Vec<u8>) -> Result<RegionLeader> {
         let mut req = GetRegionRequest::new();
         let mut header = RequestHeader::new();
         header.set_cluster_id(self.cluster_id);
@@ -64,7 +64,7 @@ impl PDClient {
             res.take_region()
         } else {
             // TODO: find a better way to handle this scene
-            panic!("not get a region");
+            return Err(Error::PdError(format!("get region error {:?}", res)));
         };
 
         let leader = if res.has_leader() {
@@ -72,7 +72,7 @@ impl PDClient {
         } else {
             None
         };
-        RegionLeader::new(region, leader)
+        Ok(RegionLeader::new(region, leader))
     }
 
     pub fn scan_regions(&self, start_key: Vec<u8>) -> bool {
