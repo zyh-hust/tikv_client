@@ -3,11 +3,19 @@ use client::Client;
 use grpcio::EnvBuilder;
 use std::sync::Arc;
 use std::thread::{self, JoinHandle};
-use std::time::{Duration, Instant};
+use std::time::Instant;
 fn main() {
     let env = Arc::new(EnvBuilder::new().build());
     let client = Client::new(env);
-
+    let mut client1 = client.clone();
+    //let split = vec!['b', 'c', 'd', 'e'];
+    let split: Vec<char> = Vec::new();
+    for ch in split {
+        let mut resp = false;
+        while !resp {
+            resp = client1.split_region(ch.to_string().into_bytes());
+        }
+    }
     // get the regions
     let start_key = "a".to_string().into_bytes();
     if client.scan_regions(start_key) {
@@ -25,11 +33,10 @@ fn main() {
                 let key = format!("{:?}-{}", head, count).into_bytes();
                 let value = format!("zyhzyhzyhzyhzyzhyzhzyzhyzhyzhzyzhyzh-{}", count).into_bytes();
                 let resp = client.raw_put(key, value);
-                count += 1;
-                if count == 10000000 {
-                    println!("thread {} end", i);
-                    break;
+                if resp == false {
+                    println!("thread {} put {} error", i, count);
                 }
+                count += 1;
                 if count % 10000 == 0 && i == 0 {
                     println!("time is {:?}", now.elapsed().as_secs());
                 }
