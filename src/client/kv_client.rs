@@ -7,9 +7,10 @@ use kvproto::kvrpcpb::{
 use kvproto::tikvpb_grpc::TikvClient;
 use std::sync::Arc;
 use std::time::Duration;
+use std::usize::MAX;
 
-const MAX_GRPC_RECV_MSG_LEN: i32 = 10 * 1024 * 1024;
-const MAX_GRPC_SEND_MSG_LEN: i32 = 10 * 1024 * 1024;
+const MAX_GRPC_RECV_MSG_LEN: i32 = 1024 * 1024 * 1024;
+const MAX_GRPC_SEND_MSG_LEN: i32 = -1;
 
 #[derive(Clone)]
 pub struct KvClient {
