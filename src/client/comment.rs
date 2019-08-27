@@ -1,7 +1,7 @@
 use kvproto::kvrpcpb::Context;
 use kvproto::metapb::{Peer, Region};
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct RegionLeader {
     pub region: Region,
     pub leader: Option<Peer>,

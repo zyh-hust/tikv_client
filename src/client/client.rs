@@ -1,10 +1,9 @@
-use grpcio::Environment;
-use std::collections::HashMap;
-
 use super::comment::RegionLeader;
 use super::error::Result;
 use super::kv_client::KvClient;
 use super::pd_client::PDClient;
+use grpcio::Environment;
+use std::collections::HashMap;
 use std::sync::Arc;
 
 #[derive(Clone)]
@@ -34,6 +33,9 @@ impl Client {
         }
     }
 
+    pub fn cache(&mut self) {
+        println!("cache is {:?}", self.region_cache);
+    }
     pub fn remove(&mut self, key: Vec<u8>) {
         self.region_cache.remove(&key);
     }
